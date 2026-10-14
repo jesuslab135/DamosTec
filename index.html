@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dalmos Tec | Tecnología, IA, Web 3D & Automatización para Negocios</title>
+    <meta name="description" content="Hacemos que la tecnología trabaje y venda por ti 24/7. Agentes de IA para WhatsApp, Páginas Web 3D, Automatización de Procesos y Crecimiento de Redes Sociales.">
+    <meta name="theme-color" content="#2563eb">
+    <!-- Etiquetas Open Graph para vista previa profesional al compartir en WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_MX">
+    <meta property="og:site_name" content="Dalmos Tec">
+    <meta property="og:title" content="Dalmos Tec | IA, Páginas Web 3D & Automatización 24/7">
+    <meta property="og:description" content="Transformamos negocios en máquinas automatizadas de ventas. Prueba en vivo nuestro Simulador de IA para WhatsApp y cotiza tu proyecto.">
+    <!-- Favicon vectorial integrado -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M50 18 L82 35 L82 68 L50 85 L18 68 L18 35 Z' fill='none' stroke='%23ffffff' stroke-width='7' stroke-linejoin='round'/><path d='M18 35 L50 52 L82 35 M50 52 L50 85' fill='none' stroke='%2338bdf8' stroke-width='6'/></svg>">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js para el motor 3D y Camera Flows -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dalmos: {
+                            bg: '#f4f8ff',
+                            card: 'rgba(255, 255, 255, 0.82)',
+                            cyan: '#0ea5e9',
+                            blue: '#2563eb',
+                            navy: '#0f172a',
+                            emerald: '#059669'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(180deg, #f4f8ff 0%, #e8f1ff 50%, #f8fbff 100%);
+            color: #0f172a;
+            overflow-x: hidden;
+            selection-background-color: #0ea5e9;
+        }
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: auto;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            box-shadow: 0 20px 50px rgba(30, 64, 175, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        .glass-panel-hover {
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-panel-hover:hover {
+            border-color: rgba(14, 165, 233, 0.55);
+            transform: translateY(-4px);
+            box-shadow: 0 24px 60px rgba(37, 99, 235, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 55%, #1d4ed8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 55%, #1d4ed8 100%);
+            background-size: 200% 200%;
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            background-position: right center;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+            transform: scale(1.02);
+        }
+        /* Custom Scrollbar Claro */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #93c5fd;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+        .ui-hidden .content-layer {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .content-layer {
+            transition: opacity 0.4s ease;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Fondo 3D Interactivo (Three.js) -->
+    <div id="canvas-container" title="Arrastra para rotar la cámara 3D"></div>
+
+    <header class="fixed top-0 left-0 right-0 z-50 px-4 py-3 sm:px-8">
+        <div class="max-w-7xl mx-auto glass-panel rounded-2xl px-4 py-3 flex items-center justify-between">
+            <a href="#estacion-0" onclick="flyToStation(0)" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-blue-600 to-blue-800 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:rotate-12 transition-transform">
+                    <i class="fa-solid fa-cube text-white text-lg font-bold"></i>
+                </div>
+                <div>
+                    <span class="font-display font-bold text-lg tracking-tight text-slate-900">DALMOS <span class="text-blue-600">TEC</span></span>
+                    <span class="block text-[10px] font-mono uppercase tracking-widest text-slate-500">AI • Web 3D • Automation</span>
+                </div>
+            </a>
+
+            <!-- Selector de Nodos 3D (Camera Flow Bar) -->
+            <nav class="hidden lg:flex items-center gap-1 bg-blue-50/90 p-1.5 rounded-xl border border-blue-200/80">
+                <button onclick="flyToStation(0)" id="nav-btn-0" class="cam-nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-blue-600 text-white shadow-sm">
+                    <i class="fa-solid fa-satellite-dish mr-1.5"></i>01. Núcleo
+                </button>
+                <button onclick="flyToStation(1)" id="nav-btn-1" class="cam-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-blue-700 hover:bg-white/60 transition-all">
+                    <i class="fa-solid fa-layer-group mr-1.5"></i>02. Ecosistema 360°
+                </button>
+                <button onclick="flyToStation(2)" id="nav-btn-2" class="cam-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-blue-700 hover:bg-white/60 transition-all">
+                    <i class="fa-brands fa-whatsapp mr-1.5"></i>03. Demo IA en Vivo
+                </button>
+                <button onclick="flyToStation(3)" id="nav-btn-3" class="cam-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-blue-700 hover:bg-white/60 transition-all">
+                    <i class="fa-solid fa-chart-line mr-1.5"></i>04. Calculadora ROI
+                </button>
+                <button onclick="flyToStation(4)" id="nav-btn-4" class="cam-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-blue-700 hover:bg-white/60 transition-all">
+                    <i class="fa-solid fa-rocket mr-1.5"></i>05. Cotizar Proyecto
+                </button>
+            </nav>
+
+            <!-- Botones de Acción Derecha -->
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleFree3DMode()" id="free-3d-btn" class="px-3 py-2 rounded-xl text-xs font-mono bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1.5 transition shadow-sm" title="Ocultar tarjetas para explorar el mundo 3D">
+                    <i class="fa-solid fa-vr-cardboard"></i>
+                    <span class="hidden sm:inline" id="free-3d-label">Vista 3D Libre</span>
+                </button>
+                <a href="https://wa.me/526631261566?text=%C2%A1Hola%20Dalmos%20Tec!%20%F0%9F%91%8B%20Vi%20su%20p%C3%A1gina%20web%203D%20y%20me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20para%20mi%20negocio." target="_blank" rel="noopener noreferrer" class="btn-gradient text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg">
+                    <i class="fa-brands fa-whatsapp text-base"></i>
+                    <span>663 126 1566</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Barra de Navegación Rápida para Celulares (Ideal para quienes abren desde WhatsApp) -->
+        <div class="lg:hidden max-w-7xl mx-auto mt-2 glass-panel rounded-xl p-1.5 flex items-center justify-between gap-1 overflow-x-auto">
+            <button onclick="flyToStation(0)" class="mob-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-blue-600 text-white transition">
+                01. Inicio
+            </button>
+            <button onclick="flyToStation(1)" class="mob-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-700 hover:bg-blue-50 transition">
+                02. Servicios
+            </button>
+            <button onclick="flyToStation(2)" class="mob-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-700 hover:bg-blue-50 transition">
+                03. Demo Bot IA
+            </button>
+            <button onclick="flyToStation(3)" class="mob-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-700 hover:bg-blue-50 transition">
+                04. Calculadora
+            </button>
+            <button onclick="flyToStation(4)" class="mob-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-700 hover:bg-blue-50 transition">
+                05. Cotizar
+            </button>
+        </div>
+    </header>
+
+    <div class="fixed bottom-4 left-4 right-4 z-40 pointer-events-none flex items-center justify-between gap-3">
+        <div class="glass-panel px-4 py-2.5 rounded-2xl pointer-events-auto flex items-center gap-4 border border-blue-300/60">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping"></span>
+                <span class="text-xs font-mono text-slate-600">NODO 3D: <strong id="hud-node-name" class="text-blue-700">NÚCLEO CENTRAL</strong></span>
+            </div>
+            <div class="h-4 w-px bg-blue-200"></div>
+            <div class="flex items-center gap-1.5">
+                <button onclick="prevStation()" class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 border border-blue-200 flex items-center justify-center transition text-xs" title="Nodo 3D Anterior">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button onclick="nextStation()" class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 border border-blue-200 flex items-center justify-center transition text-xs" title="Siguiente Nodo 3D">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+            <span class="hidden md:inline text-[11px] font-mono text-slate-500"><i class="fa-solid fa-hand-pointer mr-1 text-blue-600"></i>Arrastra el fondo para girar en 3D</span>
+        </div>
+
+        <!-- Botón Flotante Directo a tu WhatsApp 663 126 1566 -->
+        <a id="floating-wa-btn" href="https://wa.me/526631261566?text=%C2%A1Hola%20Dalmos%20Tec!%20%F0%9F%91%8B%20Vi%20su%20p%C3%A1gina%20interactiva%203D%20y%20quiero%20una%20asesor%C3%ADa%20para%20mi%20negocio." target="_blank" rel="noopener noreferrer" class="pointer-events-auto bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold px-4 py-3 rounded-2xl shadow-xl shadow-emerald-600/30 flex items-center gap-2.5 transition transform hover:scale-105 border border-white/40">
+            <i class="fa-brands fa-whatsapp text-2xl"></i>
+            <div class="hidden sm:block text-left leading-tight">
+                <span class="block text-[10px] uppercase tracking-wider font-mono text-emerald-50">WhatsApp Directo</span>
+                <span class="text-xs font-bold">663 126 1566</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL CON SCROLL VINCULADO A LA CÁMARA 3D -->
+    <main class="content-layer relative z-10 pt-28 pb-24 px-4 sm:px-8 max-w-7xl mx-auto space-y-32">
+
+        <section id="estacion-0" data-station="0" class="min-h-[82vh] flex flex-col justify-center">
+            <div class="grid lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-panel border border-blue-300/60 text-blue-700 text-xs font-mono font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        AGENCIA DE TECNOLOGÍA, IA & AUTOMATIZACIÓN B2B
+                    </div>
+
+                    <h1 class="font-display text-4xl sm:text-6xl font-bold tracking-tight text-slate-900 leading-[1.08]">
+                        Hacemos que la tecnología <span class="text-gradient">trabaje y venda por ti</span> 24/7.
+                    </h1>
+
+                    <p class="text-slate-600 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        En <strong class="text-slate-900">Dalmos Tec</strong> transformamos negocios tradicionales en máquinas automatizadas de crecimiento. Desde <span class="text-blue-700 font-medium">Agentes de Inteligencia Artificial en WhatsApp</span> y flujos de trabajo autónomos hasta <span class="text-blue-700 font-medium">Páginas Web 3D</span>, sistemas a medida y crecimiento acelerado en redes sociales.
+                    </p>
+
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        <button onclick="flyToStation(2)" class="btn-gradient text-white font-bold px-6 py-4 rounded-2xl flex items-center gap-3 text-sm sm:text-base shadow-xl">
+                            <i class="fa-solid fa-robot text-lg"></i>
+                            <span>Probar Simulador de IA en Vivo</span>
+                        </button>
+                        <button onclick="flyToStation(1)" class="glass-panel hover:bg-white hover:border-blue-400 text-slate-800 font-semibold px-6 py-4 rounded-2xl flex items-center gap-3 text-sm sm:text-base transition">
+                            <i class="fa-solid fa-compass text-blue-600"></i>
+                            <span>Explorar Servicios en 3D</span>
+                        </button>
+                    </div>
+
+                    <!-- Métricas Clave -->
+                    <div class="grid grid-cols-3 gap-3 sm:gap-6 pt-4 max-w-xl">
+                        <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-sky-500">
+                            <p class="font-display text-2xl sm:text-3xl font-bold text-slate-900">24/7</p>
+                            <p class="text-xs text-slate-600 mt-1">Atención y ventas sin pausas</p>
+                        </div>
+                        <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-blue-600">
+                            <p class="font-display text-2xl sm:text-3xl font-bold text-slate-900">-80%</p>
+                            <p class="text-xs text-slate-600 mt-1">Tiempo en tareas repetitivas</p>
+                        </div>
+                        <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-emerald-500">
+                            <p class="font-display text-2xl sm:text-3xl font-bold text-slate-900">+3.4x</p>
+                            <p class="text-xs text-slate-600 mt-1">Conversión de prospectos</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5">
+                    <div class="glass-panel rounded-3xl p-6 border border-blue-200 space-y-5 relative overflow-hidden">
+                        <div class="absolute -right-12 -top-12 w-36 h-36 bg-sky-400/15 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-[11px] font-mono uppercase tracking-wider text-blue-600 font-semibold block">Mapa Interactivo 3D</span>
+                                <h2 class="font-display text-xl font-bold text-slate-900">Viaja por nuestras soluciones</h2>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-mono text-xs border border-blue-200 font-medium">
+                                <i class="fa-solid fa-video mr-1"></i>Camera Flow
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600">
+                            Haz clic en cualquier nodo para mover la cámara espacial en tiempo real hacia esa dimensión tecnológica:
+                        </p>
+
+                        <div class="space-y-2.5">
+                            <button onclick="focusService3D(0)" class="w-full text-left p-3.5 rounded-2xl bg-white/90 hover:bg-blue-50/90 border border-blue-100 hover:border-blue-400 shadow-sm transition flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
+                                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition">Agentes IA & Bots de WhatsApp</p>
+                                        <p class="text-xs text-slate-500">Responde, agenda y vende mientras duermes</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-right text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition"></i>
+                            </button>
+
+                            <button onclick="focusService3D(1)" class="w-full text-left p-3.5 rounded-2xl bg-white/90 hover:bg-blue-50/90 border border-blue-100 hover:border-blue-400 shadow-sm transition flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center">
+                                        <i class="fa-solid fa-globe text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition">Páginas Web 3D, E-Commerce & Apps</p>
+                                        <p class="text-xs text-slate-500">Tu mejor vendedor abierto las 24 horas</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-right text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition"></i>
+                            </button>
+
+                            <button onclick="focusService3D(2)" class="w-full text-left p-3.5 rounded-2xl bg-white/90 hover:bg-blue-50/90 border border-blue-100 hover:border-blue-400 shadow-sm transition flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
+                                        <i class="fa-solid fa-gears text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition">Automatización de Flujos y CRM</p>
+                                        <p class="text-xs text-slate-500">Conecta inventarios, citas, pagos y facturación</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-right text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition"></i>
+                            </button>
+
+                            <button onclick="focusService3D(3)" class="w-full text-left p-3.5 rounded-2xl bg-white/90 hover:bg-blue-50/90 border border-blue-100 hover:border-blue-400 shadow-sm transition flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center">
+                                        <i class="fa-solid fa-bullhorn text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition">Redes Sociales, Contenido & Ads</p>
+                                        <p class="text-xs text-slate-500">Atrae clientes listos para comprar todos los días</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-right text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="estacion-1" data-station="1" class="scroll-mt-28 space-y-10">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs font-mono font-semibold uppercase tracking-widest text-blue-600 block mb-2">// 02. CATÁLOGO INTEGRAL DE SOLUCIONES</span>
+                    <h2 class="font-display text-3xl sm:text-5xl font-bold text-slate-900">Todo lo que tu negocio necesita para <span class="text-gradient">escalar sin límites</span></h2>
+                </div>
+                <p class="text-slate-600 text-sm max-w-md">
+                    Haz clic en cualquier tarjeta para enfocar su estructura tridimensional y descubrir cómo resuelve cuellos de botella reales.
+                </p>
+            </div>
+
+            <!-- Grid de 6 Servicios Completos -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Servicio 1 -->
+                <div onclick="highlight3DCluster(1)" class="cursor-pointer glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-xl">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <span class="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Más Solicitado</span>
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-slate-900">Agentes de IA en WhatsApp & Redes</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Entrenamos una Inteligencia Artificial con toda la información de tu negocio para que atienda en segundos en WhatsApp, Instagram y Facebook con trato humano.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-700 pt-2">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Responde dudas de precios, catálogo y ubicación 24/7</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Agenda citas directo en tu Google Calendar</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Califica clientes y envía links de pago en automático</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-blue-100 flex items-center justify-between">
+                        <span class="text-xs font-mono font-semibold text-blue-600">Ver en simulador →</span>
+                        <button onclick="event.stopPropagation(); flyToStation(2)" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 text-xs font-semibold transition">Probar Bot</button>
+                    </div>
+                </div>
+
+                <!-- Servicio 2 -->
+                <div onclick="highlight3DCluster(2)" class="cursor-pointer glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-laptop-code"></i>
+                            </div>
+                            <span class="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200">Alto Impacto Visual</span>
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-slate-900">Páginas Web Interactivas, 3D & E-Commerce</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Diseñamos sitios web que generan confianza inmediata, posicionan en Google (SEO local) y convierten visitantes curiosos en compradores reales.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-700 pt-2">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-600"></i> Experiencias interactivas 3D como esta misma página</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-600"></i> Tiendas en línea con cobro con tarjeta y transferencia</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-600"></i> Optimización en Google Maps y buscadores</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-blue-100 flex items-center justify-between">
+                        <span class="text-xs font-mono font-semibold text-blue-600">Diseño 100% adaptable</span>
+                        <button onclick="event.stopPropagation(); selectServiceAndQuote('Página Web / E-Commerce 3D')" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 text-xs font-semibold transition">Me interesa</button>
+                    </div>
+                </div>
+
+                <!-- Servicio 3 -->
+                <div onclick="highlight3DCluster(3)" class="cursor-pointer glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-diagram-project"></i>
+                            </div>
+                            <span class="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">Piloto Automático</span>
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-slate-900">Automatización de Flujos de Trabajo</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Eliminamos el trabajo manual conectando todas tus herramientas diarias (WhatsApp, Excel/Sheets, Correo, CRM, Facturación) para que operen solas.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-700 pt-2">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-blue-600"></i> Recordatorios automáticos a clientes para evitar inasistencias</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-blue-600"></i> Envío automático de cotizaciones PDF y contratos</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-blue-600"></i> Seguimiento inteligente a clientes que dejaron de contestar</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-blue-100 flex items-center justify-between">
+                        <span class="text-xs font-mono font-semibold text-blue-600">Ahorra +15 hrs/sem</span>
+                        <button onclick="event.stopPropagation(); selectServiceAndQuote('Automatización de Flujos de Trabajo')" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 text-xs font-semibold transition">Me interesa</button>
+                    </div>
+                </div>
+
+                <!-- Servicio 4 -->
+                <div onclick="highlight3DCluster(3)" class="cursor-pointer glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-fire-flame-curved"></i>
+                            </div>
+                            <span class="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Tráfico & Ventas</span>
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-slate-900">Crecimiento de Redes Sociales & Ads</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            No buscamos solo "likes", buscamos clientes. Creamos contenido estratégico y campañas publicitarias en Meta y Google enfocadas en retorno de inversión.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-700 pt-2">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-600"></i> Estrategia de Reels, TikToks y diseño de marca profesional</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-600"></i> Campañas de anuncios segmentadas a tu zona o ciudad</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-600"></i> Embudos que llevan del anuncio directo a tu WhatsApp</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-blue-100 flex items-center justify-between">
+                        <span class="text-xs font-mono font-semibold text-blue-600">Visibilidad constante</span>
+                        <button onclick="event.stopPropagation(); selectServiceAndQuote('Crecimiento de Redes Sociales & Ads')" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 text-xs font-semibold transition">Me interesa</button>
+                    </div>
+                </div>
+
+                <!-- Servicio 5 -->
+                <div onclick="highlight3DCluster(4)" class="cursor-pointer glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-cyan-50 border border-cyan-200 text-cyan-700 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-users-gear"></i>
+                            </div>
+                            <span class="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">Control Total</span>
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-slate-900">Implementación de CRM & Embudos</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Organiza todos tus prospectos en un solo lugar. Nunca más vuelvas a perder una venta porque un mensaje se quedó enterrado en el chat.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-700 pt-2">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-600"></i> Múltiples vendedores atendiendo desde un mismo número</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-600"></i> Etiquetas automáticas: Prospecto, Cotizado, Pagado</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-600"></i> Reportes claros de ventas y rendimiento de tu equipo</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-blue-100 flex items-center justify-between">
+                        <span class="text-xs font-mono font-semibold text-blue-600">Cero clientes olvidados</span>
+                        <button onclick="event.stopPropagation(); selectServiceAndQuote('Implementación de CRM & WhatsApp Multiagente')" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 text-xs font-semibold transition">Me interesa</button>
+                    </div>
+                </div>
+
+                <!-- Servicio 6 -->
+                <div onclick="highlight3DCluster(2)" class="cursor-pointer glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-microchip"></i>
+                            </div>
+                            <span class="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">A la Medida</span>
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-slate-900">Software a Medida, Apps & Sistemas</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            ¿Tu negocio tiene necesidades únicas? Desarrollamos aplicaciones web, paneles administrativos, control de inventarios y plataformas internas.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-700 pt-2">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-blue-600"></i> Sistemas de reservas, membresías o portales de clientes</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-blue-600"></i> Dashboards de métricas y finanzas en tiempo real</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-blue-600"></i> Integración con inteligencia artificial privada para tu empresa</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-blue-100 flex items-center justify-between">
+                        <span class="text-xs font-mono font-semibold text-blue-600">Arquitectura escalable</span>
+                        <button onclick="event.stopPropagation(); selectServiceAndQuote('Software a Medida / App Interna')" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 text-xs font-semibold transition">Me interesa</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="estacion-2" data-station="2" class="scroll-mt-28">
+            <div class="glass-panel rounded-3xl p-6 sm:p-10 border border-blue-200">
+                <div class="grid lg:grid-cols-12 gap-8 items-center">
+                    <!-- Explicación e Industria Selector -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <span class="text-xs font-mono font-semibold uppercase tracking-widest text-blue-600 block">// 03. DEMO INTERACTIVA EN VIVO</span>
+                        <h2 class="font-display text-3xl sm:text-4xl font-bold text-slate-900">
+                            Mira cómo nuestro <span class="text-gradient">Agente de IA</span> atiende y cierra ventas en segundos
+                        </h2>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Selecciona el giro de tu negocio y haz clic en una pregunta típica de un cliente para ver cómo responde el sistema automatizado de <strong class="text-slate-900">Dalmos Tec</strong> incluso a las 3:00 AM:
+                        </p>
+
+                        <!-- Selector de Giro de Negocio -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-mono font-semibold uppercase text-slate-500">1. Elige un giro de negocio:</label>
+                            <div class="grid grid-cols-2 gap-2.5" id="industry-buttons">
+                                <button onclick="setSimulatorIndustry('clinica')" id="ind-clinica" class="ind-btn px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-blue-600 bg-blue-600 text-white shadow-sm flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-spa"></i> Clínica / Spa / Salud
+                                </button>
+                                <button onclick="setSimulatorIndustry('restaurante')" id="ind-restaurante" class="ind-btn px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-blue-200 bg-white text-slate-700 hover:border-blue-400 flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-utensils text-sky-600"></i> Restaurante / Eventos
+                                </button>
+                                <button onclick="setSimulatorIndustry('ecommerce')" id="ind-ecommerce" class="ind-btn px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-blue-200 bg-white text-slate-700 hover:border-blue-400 flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-bag-shopping text-blue-600"></i> Tienda / Catálogo
+                                </button>
+                                <button onclick="setSimulatorIndustry('servicios')" id="ind-servicios" class="ind-btn px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-blue-200 bg-white text-slate-700 hover:border-blue-400 flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-briefcase text-indigo-600"></i> Servicios / Consultoría
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Preguntas Rápidas de Prueba -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-mono font-semibold uppercase text-slate-500">2. Simula el mensaje de un cliente:</label>
+                            <div id="simulator-prompts" class="space-y-2">
+                                <!-- Se llena dinámicamente por JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ventana de Chat Simulado estilo WhatsApp Claro -->
+                    <div class="lg:col-span-7">
+                        <div class="bg-[#f0f4f9] rounded-3xl border border-blue-200 overflow-hidden shadow-xl flex flex-col h-[460px]">
+                            <!-- Cabecera de WhatsApp -->
+                            <div class="bg-white px-5 py-3.5 flex items-center justify-between border-b border-blue-100">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white font-bold shadow-sm">
+                                        <i class="fa-solid fa-robot"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                            <span id="wa-bot-title">Asistente IA - Clínica & Spa</span>
+                                            <span class="px-2 py-0.5 text-[10px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">IA Activa 24/7</span>
+                                        </p>
+                                        <p class="text-xs text-emerald-600 font-medium">en línea • responde en 0.8s</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-mono text-blue-600 font-semibold"><i class="fa-solid fa-bolt text-sky-500 mr-1"></i>Dalmos Engine</span>
+                            </div>
+
+                            <!-- Historial de Mensajes -->
+                            <div id="wa-chat-box" class="flex-1 p-5 overflow-y-auto space-y-4 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px] bg-sky-50/50">
+                                <!-- Mensajes iniciales -->
+                            </div>
+
+                            <!-- Barra de Entrada Libre -->
+                            <form onsubmit="handleCustomChatSubmit(event)" class="bg-white p-3 flex items-center gap-2 border-t border-blue-100">
+                                <input id="wa-custom-input" type="text" placeholder="Escribe un mensaje de prueba o usa los botones..." class="flex-1 bg-slate-100 text-slate-900 text-xs sm:text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400">
+                                <button type="submit" class="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition shadow-sm">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </form>
+
+                            <!-- Barra inferior de conversión rápida del simulador -->
+                            <div class="bg-blue-50 px-4 py-2.5 border-t border-blue-200 flex items-center justify-between gap-2">
+                                <span class="text-[11px] sm:text-xs text-slate-700 font-medium">¿Quieres un asistente así entrenado para tu negocio?</span>
+                                <a href="https://wa.me/526631261566?text=%C2%A1Hola%20Dalmos%20Tec!%20%F0%9F%91%8B%20Acabo%20de%20probar%20el%20Simulador%20de%20IA%20en%20su%20p%C3%A1gina%20y%20quiero%20informaci%C3%B3n%20para%20implementarlo%20en%20mi%20negocio." target="_blank" rel="noopener noreferrer" class="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+                                    <i class="fa-brands fa-whatsapp"></i> Solicitar Demo Real
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="estacion-3" data-station="3" class="scroll-mt-28">
+            <div class="glass-panel rounded-3xl p-6 sm:p-10 border border-blue-200">
+                <div class="grid lg:grid-cols-12 gap-8 items-center">
+                    <div class="lg:col-span-6 space-y-6">
+                        <span class="text-xs font-mono font-semibold uppercase tracking-widest text-blue-600 block">// 04. CALCULADORA DE RENTABILIDAD</span>
+                        <h2 class="font-display text-3xl sm:text-4xl font-bold text-slate-900">
+                            ¿Cuánto tiempo y ventas estás <span class="text-gradient">recuperando</span> al automatizar?
+                        </h2>
+                        <p class="text-sm text-slate-600">
+                            Mueve los deslizadores según la realidad actual de tu negocio para calcular el impacto mensual de implementar tecnología de Dalmos Tec:
+                        </p>
+
+                        <div class="space-y-5 pt-2">
+                            <div>
+                                <div class="flex justify-between text-xs sm:text-sm mb-2">
+                                    <span class="text-slate-700 font-medium">Mensajes / consultas de clientes al día:</span>
+                                    <strong id="calc-msgs-val" class="text-blue-600 font-mono">35 mensajes/día</strong>
+                                </div>
+                                <input id="calc-msgs" type="range" min="5" max="200" value="35" oninput="updateROICalculator()" class="w-full accent-blue-600 cursor-pointer">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs sm:text-sm mb-2">
+                                    <span class="text-slate-700 font-medium">Horas a la semana en tareas manuales/repetitivas:</span>
+                                    <strong id="calc-hours-val" class="text-sky-600 font-mono">14 hrs/semana</strong>
+                                </div>
+                                <input id="calc-hours" type="range" min="2" max="50" value="14" oninput="updateROICalculator()" class="w-full accent-sky-500 cursor-pointer">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs sm:text-sm mb-2">
+                                    <span class="text-slate-700 font-medium">Valor promedio de una venta en tu negocio ($ USD / MXN):</span>
+                                    <strong id="calc-ticket-val" class="text-emerald-600 font-mono">$800</strong>
+                                </div>
+                                <input id="calc-ticket" type="range" min="100" max="10000" step="100" value="800" oninput="updateROICalculator()" class="w-full accent-emerald-600 cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resultados Dinámicos -->
+                    <div class="lg:col-span-6 grid sm:grid-cols-2 gap-4">
+                        <div class="bg-white border border-blue-200 rounded-2xl p-6 space-y-2 shadow-sm">
+                            <span class="text-xs font-mono font-semibold text-blue-600 uppercase">Tiempo Libre Recuperado</span>
+                            <p id="roi-hours-saved" class="font-display text-4xl font-bold text-slate-900">48 hrs</p>
+                            <p class="text-xs text-slate-500">al mes que dejas de gastar pegado al celular contestando lo mismo.</p>
+                        </div>
+
+                        <div class="bg-white border border-sky-200 rounded-2xl p-6 space-y-2 shadow-sm">
+                            <span class="text-xs font-mono font-semibold text-sky-600 uppercase">Consultas Atendidas al Instante</span>
+                            <p id="roi-msgs-month" class="font-display text-4xl font-bold text-slate-900">1,050</p>
+                            <p class="text-xs text-slate-500">prospectos atendidos al mes en menos de 3 segundos sin dejar a nadie en visto.</p>
+                        </div>
+
+                        <div class="sm:col-span-2 bg-gradient-to-r from-blue-600 via-blue-700 to-sky-600 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-white shadow-lg shadow-blue-500/20">
+                            <div>
+                                <span class="text-xs font-mono text-sky-100 uppercase">Potencial de Ventas Recuperadas / Mes</span>
+                                <p id="roi-money" class="font-display text-3xl sm:text-4xl font-bold text-white mt-1">+$25,600</p>
+                                <p class="text-xs text-blue-100 mt-1">Estimado conservador al no perder clientes por respuestas tardías o falta de presencia web.</p>
+                            </div>
+                            <button onclick="flyToStation(4)" class="bg-white hover:bg-blue-50 text-blue-700 font-bold text-xs sm:text-sm px-5 py-3.5 rounded-xl shrink-0 shadow-md transition">
+                                Automatizar Ahora →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="estacion-4" data-station="4" class="scroll-mt-28">
+            <div class="glass-panel rounded-3xl p-6 sm:p-10 border border-blue-300/70 relative overflow-hidden">
+                <div class="max-w-3xl mx-auto space-y-8">
+                    <div class="text-center space-y-3">
+                        <span class="text-xs font-mono font-semibold uppercase tracking-widest text-blue-600 block">// 05. INICIA TU TRANSFORMACIÓN DIGITAL</span>
+                        <h2 class="font-display text-3xl sm:text-5xl font-bold text-slate-900">
+                            Arma tu plan a medida con <span class="text-gradient">Dalmos Tec</span>
+                        </h2>
+                        <p class="text-sm sm:text-base text-slate-600">
+                            Selecciona qué áreas quieres impulsar en tu negocio y envíanos tu diagnóstico directo por WhatsApp para darte una asesoría rápida y sin compromiso.
+                        </p>
+                    </div>
+
+                    <!-- Selección de Servicios Múltiple -->
+                    <div class="space-y-3">
+                        <label class="text-xs font-mono font-semibold uppercase text-blue-700 block">1. ¿Qué soluciones te interesan? (Puedes elegir varias)</label>
+                        <div class="grid sm:grid-cols-2 gap-3" id="service-chips">
+                            <button type="button" onclick="toggleQuoteService(this, 'Agente IA para WhatsApp')" class="quote-chip text-left p-3.5 rounded-2xl border border-blue-600 bg-blue-50 text-blue-900 text-xs sm:text-sm font-semibold flex items-center justify-between transition shadow-sm">
+                                <span>🤖 Agente de IA para WhatsApp 24/7</span>
+                                <i class="fa-solid fa-circle-check text-blue-600"></i>
+                            </button>
+                            <button type="button" onclick="toggleQuoteService(this, 'Página Web / E-Commerce 3D')" class="quote-chip text-left p-3.5 rounded-2xl border border-blue-200 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center justify-between transition">
+                                <span>🌐 Página Web / Tienda en Línea</span>
+                                <i class="fa-regular fa-circle text-slate-400"></i>
+                            </button>
+                            <button type="button" onclick="toggleQuoteService(this, 'Crecimiento de Redes Sociales & Ads')" class="quote-chip text-left p-3.5 rounded-2xl border border-blue-200 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center justify-between transition">
+                                <span>📱 Gestión y Crecimiento de Redes</span>
+                                <i class="fa-regular fa-circle text-slate-400"></i>
+                            </button>
+                            <button type="button" onclick="toggleQuoteService(this, 'Automatización de Flujos de Trabajo')" class="quote-chip text-left p-3.5 rounded-2xl border border-blue-200 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center justify-between transition">
+                                <span>⚡ Automatización de Procesos / CRM</span>
+                                <i class="fa-regular fa-circle text-slate-400"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Datos del Negocio -->
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-mono font-semibold uppercase text-slate-600 block mb-1.5">Tu Nombre</label>
+                            <input id="lead-name" type="text" oninput="updateWhatsAppLinks()" placeholder="Ej. Angie / Carlos..." class="w-full bg-white border border-blue-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-600 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-mono font-semibold uppercase text-slate-600 block mb-1.5">Nombre o Giro de tu Negocio</label>
+                            <input id="lead-business" type="text" oninput="updateWhatsAppLinks()" placeholder="Ej. Boutique, Consultorio, Restaurante..." class="w-full bg-white border border-blue-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-600 shadow-sm">
+                        </div>
+                    </div>
+
+                    <!-- Banner de confirmación de contacto directo -->
+                    <div class="bg-blue-50/90 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-lg shrink-0 shadow-sm">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <div class="text-xs text-slate-700">
+                                <strong class="text-slate-900 block text-sm">Atención Directa Dalmos Tec</strong>
+                                Tu mensaje se abrirá directamente en nuestro WhatsApp oficial: <span class="font-mono font-semibold text-blue-700">+52 (663) 126-1566</span>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[11px] font-semibold border border-emerald-200 shrink-0">
+                            ● Respuesta Inmediata
+                        </span>
+                    </div>
+
+                    <!-- Botones de Envío con Enlace Nativo Garantizado -->
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <a id="wa-direct-btn" href="https://wa.me/526631261566?text=%C2%A1Hola%20Dalmos%20Tec!%20%F0%9F%91%8B%20Vi%20su%20p%C3%A1gina%20interactiva%203D%20y%20me%20gustar%C3%ADa%20una%20asesor%C3%ADa%20r%C3%A1pida%20sobre%3A%20*Agente%20IA%20para%20WhatsApp*." target="_blank" rel="noopener noreferrer" class="flex-1 btn-gradient text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-3 text-sm sm:text-base shadow-xl text-center">
+                            <i class="fa-brands fa-whatsapp text-xl"></i>
+                            <span>Enviar Solicitud por WhatsApp (663 126 1566)</span>
+                        </a>
+                        <button type="button" onclick="copySummaryToClipboard()" class="glass-panel hover:bg-blue-50 hover:border-blue-400 text-slate-800 font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm transition">
+                            <i class="fa-regular fa-copy text-blue-600"></i>
+                            <span id="copy-btn-label">Copiar Resumen</span>
+                        </button>
+                    </div>
+
+                    <!-- Toast de confirmación sin usar alert() -->
+                    <div id="status-toast" class="hidden p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-medium text-xs sm:text-sm text-center"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="pt-8 pb-16 text-center text-xs text-slate-500 font-mono space-y-2">
+            <p>© 2026 DALMOS TEC • AGENCIA DE TECNOLOGÍA, INTELIGENCIA ARTIFICIAL & AUTOMATIZACIÓN</p>
+            <p class="text-blue-600 font-semibold">WhatsApp Directo: <a href="https://wa.me/526631261566" target="_blank" rel="noopener noreferrer" class="underline hover:text-blue-800">+52 (663) 126-1566</a></p>
+        </footer>
+    </main>
+
+    <script>
+        /* =========================================================================
+           1. MOTOR 3D & CAMERA FLOWS (THREE.JS - TEMA CLARO AZUL & BLANCO)
+           ========================================================================= */
+        let scene, camera, renderer, clock;
+        let centralCore, aiNetworkGroup, webMonolithGroup, roiSpiralGroup, contactPortalGroup;
+        let starField;
+
+        // Definición de las 5 estaciones espaciales para los Camera Flows
+        const CAMERA_STATIONS = [
+            {
+                name: "NÚCLEO CENTRAL DALMOS",
+                camPos: new THREE.Vector3(0, 1.5, 16),
+                lookAt: new THREE.Vector3(0, 0, 0)
+            },
+            {
+                name: "ECOSISTEMA TECNOLÓGICO 360°",
+                camPos: new THREE.Vector3(24, 4, 14),
+                lookAt: new THREE.Vector3(22, 0, -12)
+            },
+            {
+                name: "RED NEURONAL & WHATSAPP IA",
+                camPos: new THREE.Vector3(-24, 2, 12),
+                lookAt: new THREE.Vector3(-22, 0, -14)
+            },
+            {
+                name: "VÓRTICE DE CRECIMIENTO & ROI",
+                camPos: new THREE.Vector3(0, 22, 16),
+                lookAt: new THREE.Vector3(0, 20, -10)
+            },
+            {
+                name: "PORTAL DE LANZAMIENTO",
+                camPos: new THREE.Vector3(0, -18, 13),
+                lookAt: new THREE.Vector3(0, -20, -12)
+            }
+        ];
+
+        let currentStationIndex = 0;
+        let targetCamPos = CAMERA_STATIONS[0].camPos.clone();
+        let targetLookAt = CAMERA_STATIONS[0].lookAt.clone();
+        let currentLookAt = CAMERA_STATIONS[0].lookAt.clone();
+
+        // Variables para rotación interactiva con mouse/touch
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        let orbitOffset = { x: 0, y: 0 };
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0xf0f6ff, 0.014);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.copy(CAMERA_STATIONS[0].camPos);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Iluminación clara de estudio para resaltar los azules y blancos
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x0ea5e9, 2.2, 90);
+            pointLight1.position.set(12, 18, 16);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0x2563eb, 2.0, 90);
+            pointLight2.position.set(-15, -10, 12);
+            scene.add(pointLight2);
+
+            // 1. Crear Campo de Partículas de Datos Azules
+            createStarField();
+
+            // 2. Nodo 0: Núcleo Central Dalmos (Icosaedro Azul Real + Cristal Celeste)
+            centralCore = new THREE.Group();
+            const coreGeo = new THREE.IcosahedronGeometry(3.6, 1);
+            const coreMat = new THREE.MeshStandardMaterial({
+                color: 0x2563eb,
+                wireframe: true,
+                emissive: 0x1d4ed8,
+                emissiveIntensity: 0.25,
+                roughness: 0.2,
+                metalness: 0.5
+            });
+            const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+            centralCore.add(coreMesh);
+
+            const innerCoreGeo = new THREE.OctahedronGeometry(2.1, 0);
+            const innerCoreMat = new THREE.MeshStandardMaterial({
+                color: 0x38bdf8,
+                emissive: 0x0284c7,
+                emissiveIntensity: 0.2,
+                roughness: 0.15,
+                metalness: 0.3,
+                flatShading: true
+            });
+            centralCore.add(new THREE.Mesh(innerCoreGeo, innerCoreMat));
+
+            // Anillos orbitales azules
+            for (let i = 0; i < 3; i++) {
+                const ringGeo = new THREE.TorusGeometry(5.2 + i * 1.4, 0.045, 16, 100);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: i % 2 === 0 ? 0x0284c7 : 0x2563eb,
+                    transparent: true,
+                    opacity: 0.45
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / (2 + i);
+                ring.rotation.y = i * 0.8;
+                centralCore.add(ring);
+            }
+            scene.add(centralCore);
+
+            // 3. Nodo 1: Ecosistema Tecnológico 360 (En X: 22, Y: 0, Z: -12)
+            webMonolithGroup = new THREE.Group();
+            webMonolithGroup.position.set(22, 0, -12);
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const boxGeo = new THREE.BoxGeometry(2.2, 3.5, 0.4);
+                const boxMat = new THREE.MeshStandardMaterial({
+                    color: i % 2 === 0 ? 0x2563eb : 0x0ea5e9,
+                    wireframe: true
+                });
+                const panel = new THREE.Mesh(boxGeo, boxMat);
+                panel.position.set(Math.cos(angle) * 6, Math.sin(i * 2) * 1.2, Math.sin(angle) * 6);
+                panel.lookAt(0, 0, 0);
+                webMonolithGroup.add(panel);
+            }
+            scene.add(webMonolithGroup);
+
+            // 4. Nodo 2: Red Neuronal IA & WhatsApp (En X: -22, Y: 0, Z: -14)
+            aiNetworkGroup = new THREE.Group();
+            aiNetworkGroup.position.set(-22, 0, -14);
+            const nodePositions = [];
+            const sphereGeo = new THREE.SphereGeometry(0.45, 16, 16);
+            for (let i = 0; i < 18; i++) {
+                const sphereMat = new THREE.MeshBasicMaterial({
+                    color: i % 3 === 0 ? 0x059669 : 0x2563eb
+                });
+                const node = new THREE.Mesh(sphereGeo, sphereMat);
+                const pos = new THREE.Vector3(
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 8,
+                    (Math.random() - 0.5) * 8
+                );
+                node.position.copy(pos);
+                nodePositions.push(pos);
+                aiNetworkGroup.add(node);
+            }
+            // Conectar nodos con líneas sinápticas
+            const lineMat = new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.4 });
+            for (let i = 0; i < nodePositions.length; i++) {
+                for (let j = i + 1; j < nodePositions.length; j++) {
+                    if (nodePositions[i].distanceTo(nodePositions[j]) < 6.5) {
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([nodePositions[i], nodePositions[j]]);
+                        aiNetworkGroup.add(new THREE.Line(lineGeo, lineMat));
+                    }
+                }
+            }
+            scene.add(aiNetworkGroup);
+
+            // 5. Nodo 3: Vórtice de ROI y Crecimiento (En X: 0, Y: 20, Z: -10)
+            roiSpiralGroup = new THREE.Group();
+            roiSpiralGroup.position.set(0, 20, -10);
+            for (let i = 0; i < 24; i++) {
+                const crystalGeo = new THREE.OctahedronGeometry(0.5, 0);
+                const crystalMat = new THREE.MeshStandardMaterial({
+                    color: i % 2 === 0 ? 0x1d4ed8 : 0x0ea5e9,
+                    wireframe: true
+                });
+                const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+                const t = i * 0.45;
+                crystal.position.set(Math.cos(t) * (2 + i * 0.2), (i - 12) * 0.45, Math.sin(t) * (2 + i * 0.2));
+                roiSpiralGroup.add(crystal);
+            }
+            scene.add(roiSpiralGroup);
+
+            // 6. Nodo 4: Portal de Lanzamiento (En X: 0, Y: -20, Z: -12)
+            contactPortalGroup = new THREE.Group();
+            contactPortalGroup.position.set(0, -20, -12);
+            const torusKnotGeo = new THREE.TorusKnotGeometry(3.2, 0.7, 100, 16);
+            const torusKnotMat = new THREE.MeshStandardMaterial({
+                color: 0x2563eb,
+                wireframe: true,
+                emissive: 0x38bdf8,
+                emissiveIntensity: 0.2
+            });
+            contactPortalGroup.add(new THREE.Mesh(torusKnotGeo, torusKnotMat));
+            scene.add(contactPortalGroup);
+
+            // Eventos de interacción de cámara
+            setupPointerEvents(container);
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('scroll', onPageScroll, { passive: true });
+
+            animate3D();
+        }
+
+        function createStarField() {
+            const count = 1200;
+            const geo = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            for (let i = 0; i < count * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 140;
+            }
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({
+                color: 0x3b82f6,
+                size: 0.22,
+                transparent: true,
+                opacity: 0.45
+            });
+            starField = new THREE.Points(geo, mat);
+            scene.add(starField);
+        }
+
+        function setupPointerEvents(element) {
+            element.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) {
+                    orbitOffset.x = ((e.clientX / window.innerWidth) - 0.5) * 2.2;
+                    orbitOffset.y = -((e.clientY / window.innerHeight) - 0.5) * 1.6;
+                    return;
+                }
+                const dx = e.clientX - prevMouse.x;
+                const dy = e.clientY - prevMouse.y;
+                orbitOffset.x += dx * 0.03;
+                orbitOffset.y -= dy * 0.03;
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+
+            element.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            }, { passive: true });
+            window.addEventListener('touchend', () => { isDragging = false; });
+            window.addEventListener('touchmove', (e) => {
+                if (!isDragging || e.touches.length !== 1) return;
+                const dx = e.touches[0].clientX - prevMouse.x;
+                const dy = e.touches[0].clientY - prevMouse.y;
+                orbitOffset.x += dx * 0.025;
+                orbitOffset.y -= dy * 0.025;
+                prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }, { passive: true });
+        }
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            const elapsed = clock.getElapsedTime();
+
+            if (centralCore) {
+                centralCore.rotation.y = elapsed * 0.25;
+                centralCore.rotation.x = Math.sin(elapsed * 0.4) * 0.2;
+            }
+            if (webMonolithGroup) {
+                webMonolithGroup.rotation.y = -elapsed * 0.2;
+            }
+            if (aiNetworkGroup) {
+                aiNetworkGroup.rotation.y = elapsed * 0.18;
+                aiNetworkGroup.rotation.z = Math.sin(elapsed * 0.3) * 0.12;
+            }
+            if (roiSpiralGroup) {
+                roiSpiralGroup.rotation.y = elapsed * 0.35;
+            }
+            if (contactPortalGroup) {
+                contactPortalGroup.rotation.x = elapsed * 0.3;
+                contactPortalGroup.rotation.y = elapsed * 0.2;
+            }
+            if (starField) {
+                starField.rotation.y = elapsed * 0.02;
+            }
+
+            const desiredPos = new THREE.Vector3(
+                targetCamPos.x + orbitOffset.x,
+                targetCamPos.y + orbitOffset.y,
+                targetCamPos.z
+            );
+            camera.position.lerp(desiredPos, 0.045);
+            currentLookAt.lerp(targetLookAt, 0.05);
+            camera.lookAt(currentLookAt);
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function setStationCamera(index) {
+            if (index < 0 || index >= CAMERA_STATIONS.length) return;
+            currentStationIndex = index;
+            targetCamPos.copy(CAMERA_STATIONS[index].camPos);
+            targetLookAt.copy(CAMERA_STATIONS[index].lookAt);
+
+            const hudName = document.getElementById('hud-node-name');
+            if (hudName) hudName.textContent = CAMERA_STATIONS[index].name;
+
+            document.querySelectorAll('.cam-nav-btn').forEach((btn, idx) => {
+                if (idx === index) {
+                    btn.className = "cam-nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-blue-600 text-white shadow-sm";
+                } else {
+                    btn.className = "cam-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-blue-700 hover:bg-white/60 transition-all";
+                }
+            });
+
+            document.querySelectorAll('.mob-nav-btn').forEach((btn, idx) => {
+                if (idx === index) {
+                    btn.className = "mob-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-blue-600 text-white transition";
+                } else {
+                    btn.className = "mob-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-700 hover:bg-blue-50 transition";
+                }
+            });
+        }
+
+        function flyToStation(index) {
+            setStationCamera(index);
+            const section = document.getElementById(`estacion-${index}`);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function nextStation() {
+            const next = (currentStationIndex + 1) % CAMERA_STATIONS.length;
+            flyToStation(next);
+        }
+
+        function prevStation() {
+            const prev = (currentStationIndex - 1 + CAMERA_STATIONS.length) % CAMERA_STATIONS.length;
+            flyToStation(prev);
+        }
+
+        function focusService3D(typeIndex) {
+            if (typeIndex === 0) flyToStation(2);
+            else if (typeIndex === 1) flyToStation(1);
+            else if (typeIndex === 2) flyToStation(3);
+            else flyToStation(1);
+        }
+
+        function highlight3DCluster(stationIdx) {
+            setStationCamera(stationIdx);
+        }
+
+        function onPageScroll() {
+            const sections = document.querySelectorAll('section[data-station]');
+            const scrollMid = window.scrollY + window.innerHeight * 0.42;
+            sections.forEach((sec) => {
+                const top = sec.offsetTop;
+                const height = sec.offsetHeight;
+                if (scrollMid >= top && scrollMid < top + height) {
+                    const st = parseInt(sec.getAttribute('data-station'), 10);
+                    if (st !== currentStationIndex) {
+                        setStationCamera(st);
+                    }
+                }
+            });
+        }
+
+        function toggleFree3DMode() {
+            document.body.classList.toggle('ui-hidden');
+            const label = document.getElementById('free-3d-label');
+            const isHidden = document.body.classList.contains('ui-hidden');
+            if (label) {
+                label.textContent = isHidden ? 'Mostrar Contenido' : 'Vista 3D Libre';
+            }
+        }
+
+        /* =========================================================================
+           2. SIMULADOR INTERACTIVO DE IA PARA WHATSAPP
+           ========================================================================= */
+        const SIMULATOR_DATA = {
+            clinica: {
+                title: "Asistente IA - Clínica & Spa",
+                welcome: "¡Hola! 👋 Bienvenido a *Aura Clínica & Spa*. Soy su asistente con IA de Dalmos Tec. ¿Te gustaría conocer nuestros tratamientos, precios o agendar una cita hoy?",
+                prompts: [
+                    {
+                        q: "¿Qué precio tiene la limpieza facial y qué horarios tienen mañana?",
+                        a: "¡Claro! ✨ Nuestra *Limpieza Facial Profunda Hydra* tiene un valor de *$650* (incluye diagnóstico dérmico y ultrasonido).\n\n📅 Para mañana tengo disponibles estos horarios:\n• *11:00 AM*\n• *4:30 PM*\n• *6:00 PM*\n\n¿Cuál de estos horarios te reservo con tu nombre?"
+                    },
+                    {
+                        q: "Resérvame a las 4:30 PM por favor",
+                        a: "¡Perfecto! ✅ Acabo de bloquear tu cita para mañana a las *4:30 PM* en nuestro calendario automático.\n\n📍 Te enviaremos un recordatorio automático 2 horas antes con la ubicación en Google Maps. ¡Nos vemos mañana!"
+                    }
+                ]
+            },
+            restaurante: {
+                title: "Asistente IA - Restaurante & Eventos",
+                welcome: "¡Hola! 🍽️ Bienvenido a *Bistro Central*. Puedo enviarte el menú digital, reservar una mesa en segundos o tomar tu pedido a domicilio. ¿Cómo te ayudo?",
+                prompts: [
+                    {
+                        q: "Quiero reservar una mesa para 6 personas este viernes a las 8 PM",
+                        a: "¡Excelente elección! 🥂 Tenemos disponibilidad en *Terraza Principal* para 6 personas este viernes a las *8:00 PM*.\n\n🎁 Si festejan algún cumpleaños, el postre del festejado va por nuestra cuenta. ¿Confirmo tu reservación?"
+                    },
+                    {
+                        q: "¿Tienen opciones sin gluten y servicio a domicilio?",
+                        a: "¡Sí! 🌱 Contamos con menú libre de gluten y enviamos a domicilio en menos de 35 minutos.\n\n👉 Aquí puedes ver el menú interactivo y pagar con tarjeta o transferencia: *bistrocentral.dalmostec.com*"
+                    }
+                ]
+            },
+            ecommerce: {
+                title: "Asistente IA - Tienda & Catálogo",
+                welcome: "¡Hola! 🛍️ Soy el asistente virtual 24/7 de la tienda. Reviso inventario en tiempo real y genero tu pedido al instante.",
+                prompts: [
+                    {
+                        q: "¿Tienen disponible el modelo Pro en color negro y hacen envíos?",
+                        a: "¡Sí lo tenemos en stock! 📦 Quedan *4 unidades* del Modelo Pro en color Negro.\n\n🚚 Si realizas tu pedido hoy, sale a ruta mañana mismo. ¿Quieres que te genere tu link de pago seguro o prefieres pago contra entrega?"
+                    },
+                    {
+                        q: "Genérame el link de pago por favor",
+                        a: "¡Listo! 💳 Aquí tienes tu orden preparada #DT-4092. En cuanto se confirme el pago, nuestro sistema automático te enviará tu guía de rastreo por este mismo WhatsApp. 🚀"
+                    }
+                ]
+            },
+            servicios: {
+                title: "Asistente IA - Despacho & Servicios",
+                welcome: "¡Hola! 💼 Bienvenido. Para darte la mejor atención sin hacerte esperar, cuéntame qué servicio buscas o agenda una llamada rápida.",
+                prompts: [
+                    {
+                        q: "Necesito una cotización urgente para mi negocio",
+                        a: "¡Con gusto! ⚡ Para enviarte una cotización exacta en PDF ahora mismo, solo dime: ¿Prefieres el *Plan Esencial* o el *Plan Completo con Automatización*? También puedo agendarte una videollamada de 10 min hoy."
+                    },
+                    {
+                        q: "Agéndame una llamada hoy por la tarde",
+                        a: "¡Agendado! 🗓️ Te acabo de enviar el enlace de la reunión a tu correo y WhatsApp para hoy a las *5:00 PM*. Nuestro especialista ya tiene el resumen de tu caso."
+                    }
+                ]
+            }
+        };
+
+        let currentIndustry = 'clinica';
+
+        function setSimulatorIndustry(indKey) {
+            currentIndustry = indKey;
+            const data = SIMULATOR_DATA[indKey];
+
+            document.querySelectorAll('.ind-btn').forEach(btn => {
+                btn.className = "ind-btn px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-blue-200 bg-white text-slate-700 hover:border-blue-400 flex items-center gap-2 transition";
+            });
+            const activeBtn = document.getElementById(`ind-${indKey}`);
+            if (activeBtn) {
+                activeBtn.className = "ind-btn px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-blue-600 bg-blue-600 text-white shadow-sm flex items-center gap-2 transition";
+            }
+
+            document.getElementById('wa-bot-title').textContent = data.title;
+
+            const promptsContainer = document.getElementById('simulator-prompts');
+            promptsContainer.innerHTML = '';
+            data.prompts.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3 rounded-xl bg-white hover:bg-blue-50 border border-blue-200 hover:border-blue-400 text-xs text-slate-700 font-medium flex items-center justify-between gap-2 transition shadow-sm";
+                btn.innerHTML = `<span>"${item.q}"</span><i class="fa-solid fa-paper-plane text-blue-600 shrink-0"></i>`;
+                btn.onclick = () => triggerSimulatedQuestion(item.q, item.a);
+                promptsContainer.appendChild(btn);
+            });
+
+            const chatBox = document.getElementById('wa-chat-box');
+            chatBox.innerHTML = '';
+            appendChatBubble('bot', data.welcome);
+        }
+
+        function appendChatBubble(sender, text) {
+            const chatBox = document.getElementById('wa-chat-box');
+            const wrapper = document.createElement('div');
+            wrapper.className = sender === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+            const formattedText = text
+                .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+
+            const bubble = document.createElement('div');
+            bubble.className = sender === 'user'
+                ? 'max-w-[82%] bg-blue-600 text-white text-xs sm:text-sm rounded-2xl rounded-tr-none px-4 py-2.5 shadow-sm'
+                : 'max-w-[85%] bg-white text-slate-800 text-xs sm:text-sm rounded-2xl rounded-tl-none px-4 py-3 shadow-sm border border-blue-100';
+
+            const timeColor = sender === 'user' ? 'text-blue-100' : 'text-slate-400';
+            bubble.innerHTML = `${formattedText}<span class="block text-[10px] text-right ${timeColor} mt-1">Ahora mismo ✓✓</span>`;
+            wrapper.appendChild(bubble);
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function triggerSimulatedQuestion(question, answer) {
+            appendChatBubble('user', question);
+            setTimeout(() => {
+                appendChatBubble('bot', answer);
+            }, 450);
+        }
+
+        function handleCustomChatSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('wa-custom-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            const reply = `¡Recibido! 🤖 En *Dalmos Tec* configuramos este Agente con IA para responder exactamente a *"${text}"* con tus precios reales, verificar tu agenda y cerrar la venta automáticamente en tu WhatsApp.`;
+            triggerSimulatedQuestion(text, reply);
+        }
+
+        /* =========================================================================
+           3. CALCULADORA DE ROI Y CONFIGURADOR DE PROPUESTA WHATSAPP
+           ========================================================================= */
+        function updateROICalculator() {
+            const msgs = parseInt(document.getElementById('calc-msgs').value, 10);
+            const hours = parseInt(document.getElementById('calc-hours').value, 10);
+            const ticket = parseInt(document.getElementById('calc-ticket').value, 10);
+
+            document.getElementById('calc-msgs-val').textContent = `${msgs} mensajes/día`;
+            document.getElementById('calc-hours-val').textContent = `${hours} hrs/semana`;
+            document.getElementById('calc-ticket-val').textContent = `$${ticket.toLocaleString()}`;
+
+            const monthlyHoursSaved = Math.round(hours * 4 * 0.85);
+            const monthlyMsgs = msgs * 30;
+            const extraSales = Math.max(2, Math.round(monthlyMsgs * 0.03));
+            const extraRevenue = extraSales * ticket;
+
+            document.getElementById('roi-hours-saved').textContent = `${monthlyHoursSaved} hrs`;
+            document.getElementById('roi-msgs-month').textContent = monthlyMsgs.toLocaleString();
+            document.getElementById('roi-money').textContent = `+$${extraRevenue.toLocaleString()}`;
+        }
+
+        const DALMOS_WHATSAPP_NUMBER = '526631261566';
+        const selectedServices = new Set(['Agente IA para WhatsApp']);
+
+        function toggleQuoteService(btn, serviceName) {
+            const icon = btn.querySelector('i');
+            if (selectedServices.has(serviceName)) {
+                selectedServices.delete(serviceName);
+                btn.className = "quote-chip text-left p-3.5 rounded-2xl border border-blue-200 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center justify-between transition";
+                icon.className = "fa-regular fa-circle text-slate-400";
+            } else {
+                selectedServices.add(serviceName);
+                btn.className = "quote-chip text-left p-3.5 rounded-2xl border border-blue-600 bg-blue-50 text-blue-900 text-xs sm:text-sm font-semibold flex items-center justify-between transition shadow-sm";
+                icon.className = "fa-solid fa-circle-check text-blue-600";
+            }
+            updateWhatsAppLinks();
+        }
+
+        function selectServiceAndQuote(serviceName) {
+            selectedServices.add(serviceName);
+            updateWhatsAppLinks();
+            flyToStation(4);
+            showStatusToast(`Se agregó "${serviceName}" a tu solicitud personalizada.`);
+        }
+
+        function buildWhatsAppMessage() {
+            const nameInput = document.getElementById('lead-name');
+            const bizInput = document.getElementById('lead-business');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const biz = bizInput ? bizInput.value.trim() : '';
+            const servicesList = Array.from(selectedServices).join(', ') || 'Asesoría General de Tecnología';
+
+            if (name && biz) {
+                return `¡Hola Dalmos Tec! 👋 Soy *${name}* de *${biz}*. Vi su página interactiva 3D y me gustaría recibir información sobre: *${servicesList}*.`;
+            } else if (name) {
+                return `¡Hola Dalmos Tec! 👋 Soy *${name}*. Vi su página interactiva 3D y me gustaría recibir información sobre: *${servicesList}*.`;
+            } else if (biz) {
+                return `¡Hola Dalmos Tec! 👋 Tengo un negocio de *${biz}*. Vi su página interactiva 3D y me gustaría recibir información sobre: *${servicesList}*.`;
+            }
+            return `¡Hola Dalmos Tec! 👋 Vi su página interactiva 3D y me gustaría recibir información y precios sobre: *${servicesList}*.`;
+        }
+
+        function updateWhatsAppLinks() {
+            const encodedMsg = encodeURIComponent(buildWhatsAppMessage());
+            const fullUrl = `https://wa.me/${DALMOS_WHATSAPP_NUMBER}?text=${encodedMsg}`;
+
+            const mainBtn = document.getElementById('wa-direct-btn');
+            if (mainBtn) mainBtn.href = fullUrl;
+
+            const floatBtn = document.getElementById('floating-wa-btn');
+            if (floatBtn) floatBtn.href = fullUrl;
+        }
+
+        function showStatusToast(msg) {
+            const toast = document.getElementById('status-toast');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4500);
+        }
+
+        function copySummaryToClipboard() {
+            const msg = buildWhatsAppMessage();
+            const tempInput = document.createElement('textarea');
+            tempInput.value = msg;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const label = document.getElementById('copy-btn-label');
+            label.textContent = '¡Copiado al portapapeles!';
+            showStatusToast('Mensaje copiado. Ya puedes pegarlo directamente en WhatsApp al 663 126 1566.');
+            setTimeout(() => {
+                label.textContent = 'Copiar Resumen';
+            }, 2500);
+        }
+
+        // Inicializar todo cuando cargue la ventana
+        window.onload = function () {
+            initThreeJS();
+            setSimulatorIndustry('clinica');
+            updateROICalculator();
+            updateWhatsAppLinks();
+        };
+    </script>
+</body>
+</html>
